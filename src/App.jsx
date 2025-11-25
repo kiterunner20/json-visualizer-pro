@@ -15,6 +15,7 @@ function App() {
   const [wasAutoFixed, setWasAutoFixed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(0);
+  const [expandAll, setExpandAll] = useState(true);
 
   useEffect(() => {
     if (!jsonInput.trim()) {
