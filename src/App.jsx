@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JsonViewer from './components/JsonViewer';
 import AdUnit from './components/AdUnit';
+import { parseJSON } from './utils/jsonParser';
 
 function App() {
   const [jsonInput, setJsonInput] = useState('{\n  "welcome": "To Ultimate JSON Visualizer",\n  "features": [\n    "Fast Parsing",\n    "Collapsible Nodes",\n    "Premium UI"\n  ],\n  "isAwesome": true,\n  "stats": {\n    "users": 1000,\n    "rating": 5.0\n  }\n}');
@@ -8,19 +9,29 @@ function App() {
   const [error, setError] = useState(null);
   const [isMinified, setIsMinified] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [wasAutoFixed, setWasAutoFixed] = useState(false);
 
   useEffect(() => {
-    try {
-      if (!jsonInput.trim()) {
-        setParsedData(null);
-        setError(null);
-        return;
-      }
-      const parsed = JSON.parse(jsonInput);
-      setParsedData(parsed);
+    if (!jsonInput.trim()) {
+      setParsedData(null);
       setError(null);
-    } catch (err) {
-      setError(err.message);
+      setWasAutoFixed(false);
+      return;
+    }
+
+    const result = parseJSON(jsonInput);
+    if (result.success) {
+      setParsedData(result.data);
+      setError(null);
+      setWasAutoFixed(result.fixed);
+
+      // If auto-fixed, update the input to show the fixed version
+      if (result.fixed) {
+        setJsonInput(JSON.stringify(result.data, null, 2));
+      }
+    } else {
+      setError(result.error);
+      setWasAutoFixed(false);
     }
   }, [jsonInput]);
 
@@ -93,6 +104,7 @@ function App() {
           <div className="panel">
             <div className="panel-header">
               <span className="panel-title">Input</span>
+              {wasAutoFixed && <span style={{ color: 'var(--success)', fontSize: '0.8rem' }}>✓ Auto-fixed</span>}
               {error && <span style={{ color: 'var(--error)', fontSize: '0.8rem' }}>Invalid JSON</span>}
             </div>
             <textarea
