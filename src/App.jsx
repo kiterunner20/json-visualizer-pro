@@ -6,6 +6,8 @@ function App() {
   const [jsonInput, setJsonInput] = useState('{\n  "welcome": "To Ultimate JSON Visualizer",\n  "features": [\n    "Fast Parsing",\n    "Collapsible Nodes",\n    "Premium UI"\n  ],\n  "isAwesome": true,\n  "stats": {\n    "users": 1000,\n    "rating": 5.0\n  }\n}');
   const [parsedData, setParsedData] = useState(null);
   const [error, setError] = useState(null);
+  const [isMinified, setIsMinified] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     try {
@@ -22,14 +24,66 @@ function App() {
     }
   }, [jsonInput]);
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(jsonInput);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([jsonInput], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFormatToggle = () => {
+    if (!parsedData) return;
+
+    if (isMinified) {
+      // Format (pretty print)
+      setJsonInput(JSON.stringify(parsedData, null, 2));
+      setIsMinified(false);
+    } else {
+      // Minify
+      setJsonInput(JSON.stringify(parsedData));
+      setIsMinified(true);
+    }
+  };
+
   return (
     <>
       <header className="app-header">
         <div className="container header-content">
           <div className="logo">JSON VISUALIZER PRO</div>
           <div className="actions">
-            <button className="btn" onClick={() => setJsonInput('')}>Clear</button>
-            <button className="btn btn-primary" style={{ marginLeft: '1rem' }}>Format</button>
+            <button className="btn" onClick={handleCopy} title="Copy to clipboard">
+              {copySuccess ? '✓ Copied!' : '📋 Copy'}
+            </button>
+            <button className="btn" onClick={handleDownload} style={{ marginLeft: '0.5rem' }} title="Download as file">
+              ⬇️ Download
+            </button>
+            <button
+              className="btn"
+              onClick={handleFormatToggle}
+              style={{ marginLeft: '0.5rem' }}
+              disabled={!parsedData}
+              title={isMinified ? 'Format JSON' : 'Minify JSON'}
+            >
+              {isMinified ? '📐 Format' : '🗜️ Minify'}
+            </button>
+            <button className="btn" onClick={() => setJsonInput('')} style={{ marginLeft: '0.5rem' }}>
+              🗑️ Clear
+            </button>
           </div>
         </div>
       </header>
