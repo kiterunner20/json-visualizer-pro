@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JsonViewer from './components/JsonViewer';
 import AdUnit from './components/AdUnit';
+import SearchBar from './components/SearchBar';
 import { parseJSON } from './utils/jsonParser';
 
 function App() {
@@ -10,6 +11,8 @@ function App() {
   const [isMinified, setIsMinified] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [wasAutoFixed, setWasAutoFixed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState(0);
 
   useEffect(() => {
     if (!jsonInput.trim()) {
@@ -71,6 +74,20 @@ function App() {
     }
   };
 
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    if (!term || !parsedData) {
+      setSearchResults(0);
+      return;
+    }
+
+    // Count matches in JSON
+    const jsonString = JSON.stringify(parsedData);
+    const matches = jsonString.toLowerCase().split(term.toLowerCase()).length - 1;
+    setSearchResults(matches);
+  };
+
   return (
     <>
       <header className="app-header">
@@ -119,6 +136,7 @@ function App() {
           <div className="panel">
             <div className="panel-header">
               <span className="panel-title">Viewer</span>
+              <SearchBar onSearch={handleSearch} resultsCount={searchResults} />
             </div>
             <div className="viewer-content">
               {error ? (
@@ -127,7 +145,7 @@ function App() {
                   <pre style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>{error}</pre>
                 </div>
               ) : (
-                <JsonViewer data={parsedData} />
+                <JsonViewer data={parsedData} searchTerm={searchTerm} />
               )}
             </div>
           </div>
