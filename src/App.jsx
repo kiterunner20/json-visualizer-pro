@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JsonViewer from './components/JsonViewer';
 import AdUnit from './components/AdUnit';
 import SearchBar from './components/SearchBar';
+import StatsPanel from './components/StatsPanel';
 import { parseJSON } from './utils/jsonParser';
+import { generateTypeScript } from './utils/typeGenerator';
 
 function App() {
   const [jsonInput, setJsonInput] = useState('{\n  "welcome": "To Ultimate JSON Visualizer",\n  "features": [\n    "Fast Parsing",\n    "Collapsible Nodes",\n    "Premium UI"\n  ],\n  "isAwesome": true,\n  "stats": {\n    "users": 1000,\n    "rating": 5.0\n  }\n}');
@@ -88,6 +90,21 @@ function App() {
     setSearchResults(matches);
   };
 
+  const handleGenerateTypes = async () => {
+    if (!parsedData) return;
+    const tsCode = generateTypeScript(parsedData);
+    try {
+      await navigator.clipboard.writeText(tsCode);
+      alert('TypeScript types copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+  };
+
   return (
     <>
       <header className="app-header">
@@ -108,6 +125,24 @@ function App() {
               title={isMinified ? 'Format JSON' : 'Minify JSON'}
             >
               {isMinified ? '📐 Format' : '🗜️ Minify'}
+            </button>
+            <button
+              className="btn"
+              onClick={handleGenerateTypes}
+              style={{ marginLeft: '0.5rem' }}
+              disabled={!parsedData}
+              title="Generate TypeScript types"
+            >
+              ⚙️ TS Types
+            </button>
+            <button
+              className="btn"
+              onClick={toggleExpandAll}
+              style={{ marginLeft: '0.5rem' }}
+              disabled={!parsedData}
+              title={expandAll ? 'Collapse all' : 'Expand all'}
+            >
+              {expandAll ? '➖ Collapse' : '➕ Expand'}
             </button>
             <button className="btn" onClick={() => setJsonInput('')} style={{ marginLeft: '0.5rem' }}>
               🗑️ Clear
@@ -136,6 +171,7 @@ function App() {
           <div className="panel">
             <div className="panel-header">
               <span className="panel-title">Viewer</span>
+              <StatsPanel data={parsedData} />
               <SearchBar onSearch={handleSearch} resultsCount={searchResults} />
             </div>
             <div className="viewer-content">
@@ -145,7 +181,7 @@ function App() {
                   <pre style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap' }}>{error}</pre>
                 </div>
               ) : (
-                <JsonViewer data={parsedData} searchTerm={searchTerm} />
+                <JsonViewer data={parsedData} searchTerm={searchTerm} expandAll={expandAll} />
               )}
             </div>
           </div>

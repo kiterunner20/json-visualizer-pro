@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+```
+import React, { useState, useEffect } from 'react';
 
-const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
+const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm, expandAll }) => {
     const [expanded, setExpanded] = useState(true);
+
+    useEffect(() => {
+        setExpanded(expandAll);
+    }, [expandAll]);
 
     const toggle = () => setExpanded(!expanded);
 
@@ -11,7 +16,7 @@ const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
 
     const highlightText = (text) => {
         if (!searchTerm || !text) return text;
-        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const regex = new RegExp(`(${ searchTerm })`, 'gi');
         const parts = String(text).split(regex);
         return parts.map((part, i) =>
             regex.test(part) ?
@@ -40,7 +45,7 @@ const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
         return (
             <div className="json-node" style={isMatch ? { background: 'rgba(56, 189, 248, 0.1)' } : {}}>
                 {keyName && <span className="json-key">"{highlightText(keyName)}": </span>}
-                <span className={`json-${type}`}>{highlightText(displayValue)}</span>
+                <span className={`json - ${ type } `}>{highlightText(displayValue)}</span>
                 {!isLast && <span>,</span>}
             </div>
         );
@@ -62,7 +67,7 @@ const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
                 <span>{brackets[0]}</span>
                 {!expanded && !isEmpty && (
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.8em', marginLeft: '0.5rem' }}>
-                        {isArray ? `Array(${itemCount})` : `Object{${itemCount}}`} ... {brackets[1]}
+                        {isArray ? `Array(${ itemCount })` : `Object{${ itemCount } } `} ... {brackets[1]}
                         {!isLast && <span>,</span>}
                     </span>
                 )}
@@ -84,6 +89,7 @@ const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
                             isLast={index === itemCount - 1}
                             level={level + 1}
                             searchTerm={searchTerm}
+                            expandAll={expandAll}
                         />
                     ))}
                     <div>{brackets[1]}{!isLast && <span>,</span>}</div>
@@ -93,16 +99,17 @@ const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm }) => {
     );
 };
 
-const JsonViewer = ({ data, searchTerm }) => {
+const JsonViewer = ({ data, searchTerm, expandAll }) => {
     if (data === null || data === undefined) {
         return <div className="text-secondary">No JSON data to display</div>;
     }
 
     return (
         <div className="json-tree">
-            <JsonNode value={data} isLast={true} searchTerm={searchTerm} />
+            <JsonNode value={data} isLast={true} searchTerm={searchTerm} expandAll={expandAll} />
         </div>
     );
 };
 
 export default JsonViewer;
+```
