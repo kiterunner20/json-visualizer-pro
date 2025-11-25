@@ -1,4 +1,3 @@
-```
 import React, { useState, useEffect } from 'react';
 
 const JsonNode = ({ keyName, value, isLast, level = 0, searchTerm, expandAll }) => {
@@ -112,4 +111,3 @@ const JsonViewer = ({ data, searchTerm, expandAll }) => {
 };
 
 export default JsonViewer;
-```
